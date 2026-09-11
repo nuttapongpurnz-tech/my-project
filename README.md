@@ -32,16 +32,6 @@ This repository is a personal space for experimenting with code, building projec
 
 ---
 
-## 📂 Project Structure
-
-```text
-my-project/
-├── README.md
-└── ...
-```
-
----
-
 ## 📌 Status
 
 🟢 **Active Development**
