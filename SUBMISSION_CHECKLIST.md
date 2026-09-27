@@ -7,6 +7,10 @@ down. The commands used to verify each one are noted so they can be repeated.
 
 - [x] Vercel production URL added to `README.md` — `https://web-application-psi-tawny.vercel.app`
 - [x] Supabase project/schema shared or exported as required — `DATABASE_SCHEMA.md`, exported from the live database
+- [ ] Source repository on GitHub — add the remote and push, then replace
+      `https://github.com/<your-account>/<your-repo>.git` in `README.md` §5.2
+      with the real URL. The history and CI workflow are already in place, so
+      this is `git remote add origin <url> && git push -u origin main`.
 
 ## Database
 

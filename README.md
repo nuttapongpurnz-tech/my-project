@@ -193,6 +193,8 @@ Web application สำหรับทีมงาน Automation ในโรง�
 ### 5.2 ติดตั้งและตั้งค่า
 
 ```bash
+git clone https://github.com/<your-account>/<your-repo>.git
+cd <your-repo>
 npm install
 cp .env.example .env.local
 ```
@@ -294,6 +296,18 @@ npm test
 npm run typecheck
 npm run build
 ```
+
+ทั้งสี่คำสั่งนี้รันอัตโนมัติทุกครั้งที่ push หรือเปิด Pull Request ผ่าน GitHub Actions ที่ [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) โดยใช้ `npm ci` เพื่อให้ได้ dependency ตาม lockfile แบบตรงเป๊ะ และตรวจด้วย Node.js 22 ซึ่งเป็นเวอร์ชันเดียวกับที่ `package.json` กำหนดไว้
+
+นอกจากนี้ยังมีชุดทดสอบที่ต้องต่อฐานข้อมูลจริง ซึ่งรันแยกออกไปเพราะสิ่งที่ทดสอบคือกลไกการบังคับสิทธิ์ใน Postgres เอง ไม่ใช่โค้ดฝั่ง client
+
+```bash
+TEST_SUPABASE_URL=https://<project-ref>.supabase.co \
+TEST_SUPABASE_ANON_KEY=<anon key> \
+npm run test:db
+```
+
+ชุดนี้สมัครบัญชีทดสอบทิ้งไปเองด้วยอีเมลสุ่ม แล้วลบทิ้งทั้งหมด ไม่ต้องใช้ Service Role Key จึงรันกับข้อมูลจริงได้โดยไม่ต้องมีสิทธิ์ระดับสูง ถ้าไม่ได้ตั้งค่า `TEST_SUPABASE_URL` ชุดนี้จะข้ามตัวเองอย่างชัดเจน
 
 ### 6.1 ลำดับการตรวจสอบคุณภาพ
 
