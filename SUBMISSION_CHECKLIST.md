@@ -12,6 +12,16 @@ down. The commands used to verify each one are noted so they can be repeated.
       with the real URL. The history and CI workflow are already in place, so
       this is `git remote add origin <url> && git push -u origin main`.
 
+## Outstanding
+
+- [ ] The Vercel deployment predates the current source. The running build
+      still logs React error #418 on `/login` for a visitor whose system
+      prefers a dark theme, and its machine-ID input is not constrained,
+      because the `pattern` attribute in that build is one Chrome rejects
+      under the `v` flag. Both are fixed in the source and confirmed fixed in
+      a production build; the acceptance tests above record the evidence.
+      Redeploy to pick the fixes up, and no code change is needed to close this.
+
 ## Database
 
 - [x] Run `001_initial_schema.sql` (or confirm it was already applied)
@@ -38,6 +48,18 @@ the schema, and `supabase/bootstrap.sql` does the same in one idempotent pass.
 - [x] Dashboard totals and status graph match Supabase data
 - [x] `npm run lint` passes
 - [x] `npm run build` passes
+- [x] Loading `/login` with a dark system preference produces no hydration
+      error. The theme control read `localStorage` during render, so the server
+      markup and the first client render disagreed; it now reads the preference
+      through `useSyncExternalStore` with a fixed server snapshot. Checked by
+      loading the page in Chrome with the dark preference emulated and asserting
+      the console is clean and the selected theme is still correct afterwards.
+- [x] The machine-ID field rejects an invalid value in the browser. The
+      `pattern` attribute failed to compile under the `v` flag, and Chrome
+      silently ignored it rather than reporting a problem, so the field accepted
+      anything. The JavaScript and the `pattern` now come from one shared
+      source, `MACHINE_ID_PATTERN_SOURCE`, with unit tests asserting the regex
+      compiles under `v` and accepts what Postgres accepts.
 
 Permissions are enforced by Row Level Security, not only by hiding buttons, so
 these hold even for a caller who skips the interface entirely.
