@@ -7,10 +7,18 @@
  * a change-request audit trigger. This reads the real catalogue instead, so the
  * schema documentation cannot disagree with the schema.
  *
+ * Against a hosted project, through the management API:
+ *
  *   SB_TOKEN=<supabase management token> \
  *   SB_PROJECT_REF=<project ref> \
  *   node tools/generate-schema-doc.mjs
+ *
+ * Or against any Postgres directly, which is how the document is checked before
+ * anything is deployed. `psql` does the work, so this needs no client library:
+ *
+ *   DATABASE_URL=<postgres connection string> node tools/generate-schema-doc.mjs
  */
+import { execFileSync } from "node:child_process";
 import { readdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -18,19 +26,48 @@ import { fileURLToPath } from "node:url";
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
 const TOKEN = process.env.SB_TOKEN;
 const REF = process.env.SB_PROJECT_REF;
+const DATABASE_URL = process.env.DATABASE_URL;
 const OUT = join(repoRoot, "DATABASE_SCHEMA.md");
 
-if (!TOKEN) {
-  console.error("Set SB_TOKEN to a Supabase management access token first.");
+if (!DATABASE_URL && !TOKEN) {
+  console.error("Set DATABASE_URL to a Postgres connection string, or SB_TOKEN to a Supabase management access token.");
   process.exit(1);
 }
 
-if (!REF) {
+if (!DATABASE_URL && !REF) {
   console.error("Set SB_PROJECT_REF to the project ref, e.g. abcdefghijklmnop.");
   process.exit(1);
 }
 
 async function sql(query, label = "query") {
+  if (DATABASE_URL) {
+    // The Management API answers with an array of row objects, so a direct
+    // connection is asked for the same shape and everything downstream is
+    // written once rather than twice.
+    const inner = query.trim().replace(/;\s*$/, "");
+    let out;
+    try {
+      out = execFileSync(
+        "psql",
+        [DATABASE_URL, "-t", "-A", "-q", "-v", "ON_ERROR_STOP=1", "-c", `select coalesce(json_agg(row_to_json(q)), '[]'::json) from (${inner}) q`],
+        { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 },
+      );
+    } catch (error) {
+      if (error.code === "ENOENT") {
+        throw new Error(
+          `[${label}] psql was not found on PATH.\n` +
+            "  Install the Postgres client, or point DATABASE_URL at a project through SB_TOKEN instead.",
+        );
+      }
+      throw new Error(`[${label}] psql failed:\n  ${(error.stderr || error.message).toString().trim().slice(0, 400)}`);
+    }
+    try {
+      return JSON.parse(out.trim() || "[]");
+    } catch {
+      throw new Error(`[${label}] could not read the result as JSON from psql:\n  ${out.trim().slice(0, 400)}`);
+    }
+  }
+
   const url = `https://api.supabase.com/v1/projects/${REF}/database/query`;
   const r = await fetch(url, {
     method: "POST",

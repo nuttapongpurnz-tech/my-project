@@ -2,7 +2,7 @@
 
 สคีมาฉบับนี้สร้างจากฐานข้อมูลจริงบน Supabase ไม่ได้เขียนด้วยมือ จึงไม่มีทางคลาดเคลื่อนจากของจริง
 
-> สร้างใหม่ด้วย `SB_TOKEN=<management token> SB_PROJECT_REF=<project ref> node tools/generate-schema-doc.mjs` · โปรเจกต์ `yqtaqszufgunjtifwspy`
+> สร้างใหม่ด้วย `SB_TOKEN=<management token> SB_PROJECT_REF=<project ref> node tools/generate-schema-doc.mjs` · โปรเจกต์ `undefined`
 
 ## วิธีติดตั้ง
 
@@ -32,14 +32,14 @@
 
 | รายการ | จำนวน |
 | --- | --- |
-| ตาราง | 6 |
+| ตาราง | 7 |
 | Enum type | 3 |
-| Foreign key | 10 |
+| Foreign key | 11 |
 | Check constraint | 31 |
-| Index | 17 |
+| Index | 19 |
 | RLS policy | 22 |
 | Trigger | 13 |
-| ฟังก์ชัน | 9 |
+| ฟังก์ชัน | 45 |
 
 ### Enum type
 
@@ -59,6 +59,7 @@
 | `machines` | เปิด |
 | `maintenance_records` | เปิด |
 | `profiles` | เปิด |
+| `schema_migrations` | **ไม่เปิด** |
 
 ## ตารางและคอลัมน์
 
@@ -151,6 +152,12 @@
 | `created_at` | `timestamp with time zone` | ห้ามว่าง | `now()` |
 | `updated_at` | `timestamp with time zone` | ห้ามว่าง | `now()` |
 
+### `schema_migrations`
+
+| คอลัมน์ | ชนิด | null | ค่าเริ่มต้น |
+| --- | --- | --- | --- |
+| `version` | `varchar` | ห้ามว่าง | — |
+
 ## Foreign Key
 
 | ตาราง | คอลัมน์ | อ้างไปที่ | กฎเมื่อลบ |
@@ -165,6 +172,7 @@
 | `maintenance_records` | `created_by` | `profiles.id` | `RESTRICT` |
 | `maintenance_records` | `machine_id` | `machines.id` | `RESTRICT` |
 | `maintenance_records` | `technician_id` | `profiles.id` | `RESTRICT` |
+| `profiles` | `id` | `users.id` | `CASCADE` |
 
 ทุกคีย์ใช้ `restrict` หรือ `set null` ไม่มี `cascade` ยกเว้น `profiles.id` ซึ่งชี้กลับไปที่ `auth.users` เพราะเมื่อลบบัญชีออกจากระบบ profile ต้องหายตามไป ส่วนข้อมูลปฏิบัติการจะไม่ถูกลบตามบัญชี เพื่อให้ประวัติยังอยู่
 
@@ -225,6 +233,8 @@
 | `maintenance_records` | `maintenance_records_pkey` |
 | `maintenance_records` | `maintenance_technician_idx` |
 | `profiles` | `profiles_pkey` |
+| `schema_migrations` | `schema_migrations_pkey` |
+| `schema_migrations` | `schema_migrations_version_idx` |
 
 ## RLS Policy
 
@@ -232,30 +242,30 @@
 | --- | --- | --- | --- | --- | --- |
 | `alarms` | `admins delete alarms` | `DELETE` | `{authenticated}` | `is_admin()` | `—` |
 | `alarms` | `admins update alarms` | `UPDATE` | `{authenticated}` | `is_admin()` | `is_admin()` |
-| `alarms` | `authenticated users create alarms` | `INSERT` | `{authenticated}` | `—` | `((created_by = auth.uid()) AND can_write())` |
+| `alarms` | `authenticated users create alarms` | `INSERT` | `{authenticated}` | `—` | `((created_by = uid()) AND can_write())` |
 | `alarms` | `authenticated users read alarms` | `SELECT` | `{authenticated}` | `true` | `—` |
 | `alarms` | `technicians update alarm workflow` | `UPDATE` | `{authenticated}` | `(can_write() AND (EXISTS ( SELECT 1
    FROM profiles p
-  WHERE ((p.id = auth.uid()) AND (p.role = 'technician'::app_role)))))` | `(can_write() AND (EXISTS ( SELECT 1
+  WHERE ((p.id = uid()) AND (p.role = 'technician'::app_role)))))` | `(can_write() AND (EXISTS ( SELECT 1
    FROM profiles p
-  WHERE ((p.id = auth.uid()) AND (p.role = 'technician'::app_role)))))` |
+  WHERE ((p.id = uid()) AND (p.role = 'technician'::app_role)))))` |
 | `alarms` | `viewers read alarms` | `SELECT` | `{authenticated}` | `true` | `—` |
 | `audit_log` | `authenticated users read audit log` | `SELECT` | `{authenticated}` | `true` | `—` |
 | `change_requests` | `admins review change requests` | `UPDATE` | `{authenticated}` | `is_admin()` | `is_admin()` |
-| `change_requests` | `authenticated users create change requests` | `INSERT` | `{authenticated}` | `—` | `(requested_by = auth.uid())` |
+| `change_requests` | `authenticated users create change requests` | `INSERT` | `{authenticated}` | `—` | `(requested_by = uid())` |
 | `change_requests` | `authenticated users read change requests` | `SELECT` | `{authenticated}` | `true` | `—` |
 | `machines` | `admins manage machines` | `ALL` | `{authenticated}` | `is_admin()` | `is_admin()` |
 | `machines` | `authenticated users read machines` | `SELECT` | `{authenticated}` | `true` | `—` |
 | `machines` | `viewers read machines` | `SELECT` | `{authenticated}` | `true` | `—` |
 | `maintenance_records` | `admins delete maintenance` | `DELETE` | `{authenticated}` | `is_admin()` | `—` |
-| `maintenance_records` | `admins or assigned technicians update maintenance` | `UPDATE` | `{authenticated}` | `(can_write() AND (is_admin() OR (technician_id = auth.uid())))` | `(can_write() AND (is_admin() OR (technician_id = auth.uid())))` |
-| `maintenance_records` | `admins or technicians create maintenance` | `INSERT` | `{authenticated}` | `—` | `(can_write() AND (technician_id = auth.uid()) AND (created_by = auth.uid()))` |
+| `maintenance_records` | `admins or assigned technicians update maintenance` | `UPDATE` | `{authenticated}` | `(can_write() AND (is_admin() OR (technician_id = uid())))` | `(can_write() AND (is_admin() OR (technician_id = uid())))` |
+| `maintenance_records` | `admins or technicians create maintenance` | `INSERT` | `{authenticated}` | `—` | `(can_write() AND (technician_id = uid()) AND (created_by = uid()))` |
 | `maintenance_records` | `authenticated users read maintenance` | `SELECT` | `{authenticated}` | `true` | `—` |
 | `maintenance_records` | `viewers read maintenance` | `SELECT` | `{authenticated}` | `true` | `—` |
 | `profiles` | `admins manage profiles` | `ALL` | `{authenticated}` | `is_admin()` | `is_admin()` |
 | `profiles` | `admins read profiles` | `SELECT` | `{authenticated}` | `is_admin()` | `—` |
-| `profiles` | `users read own profile` | `SELECT` | `{authenticated}` | `(id = auth.uid())` | `—` |
-| `profiles` | `users update own profile` | `UPDATE` | `{authenticated}` | `(id = auth.uid())` | `(id = auth.uid())` |
+| `profiles` | `users read own profile` | `SELECT` | `{authenticated}` | `(id = uid())` | `—` |
+| `profiles` | `users update own profile` | `UPDATE` | `{authenticated}` | `(id = uid())` | `(id = uid())` |
 
 **หมายเหตุ:** `audit_log` มีเพียง policy ระบุ `for select` เท่านั้น ไม่มี policy สำหรับ insert แม้แต่ตัวเดียว เพราะรายการต้องถูกเขียนโดย trigger ซึ่งรันเป็น `security definer` เท่านั้น ผลคือ client ไม่สามารถสร้าง แก้ไข หรือลบรายการ audit ได้เลย แม้จะล็อกอินด้วย role ใดก็ตาม
 
@@ -281,10 +291,46 @@
 
 | ชื่อ | คืนค่า | ภาษา | สิทธิ์ |
 | --- | --- | --- | --- |
+| `armor` | `text` | `c` | SECURITY INVOKER |
+| `armor` | `text` | `c` | SECURITY INVOKER |
 | `audit_record_id` | `uuid` | `sql` | SECURITY INVOKER |
 | `can_write` | `boolean` | `sql` | SECURITY DEFINER |
+| `crypt` | `text` | `c` | SECURITY INVOKER |
+| `dearmor` | `bytea` | `c` | SECURITY INVOKER |
+| `decrypt` | `bytea` | `c` | SECURITY INVOKER |
+| `decrypt_iv` | `bytea` | `c` | SECURITY INVOKER |
+| `digest` | `bytea` | `c` | SECURITY INVOKER |
+| `digest` | `bytea` | `c` | SECURITY INVOKER |
+| `encrypt` | `bytea` | `c` | SECURITY INVOKER |
+| `encrypt_iv` | `bytea` | `c` | SECURITY INVOKER |
+| `gen_random_bytes` | `bytea` | `c` | SECURITY INVOKER |
+| `gen_random_uuid` | `uuid` | `c` | SECURITY INVOKER |
+| `gen_salt` | `text` | `c` | SECURITY INVOKER |
+| `gen_salt` | `text` | `c` | SECURITY INVOKER |
 | `handle_new_user` | `trigger` | `plpgsql` | SECURITY DEFINER |
+| `hmac` | `bytea` | `c` | SECURITY INVOKER |
+| `hmac` | `bytea` | `c` | SECURITY INVOKER |
 | `is_admin` | `boolean` | `sql` | SECURITY DEFINER |
+| `pgp_armor_headers` | `SETOF record` | `c` | SECURITY INVOKER |
+| `pgp_key_id` | `text` | `c` | SECURITY INVOKER |
+| `pgp_pub_decrypt` | `text` | `c` | SECURITY INVOKER |
+| `pgp_pub_decrypt` | `text` | `c` | SECURITY INVOKER |
+| `pgp_pub_decrypt` | `text` | `c` | SECURITY INVOKER |
+| `pgp_pub_decrypt_bytea` | `bytea` | `c` | SECURITY INVOKER |
+| `pgp_pub_decrypt_bytea` | `bytea` | `c` | SECURITY INVOKER |
+| `pgp_pub_decrypt_bytea` | `bytea` | `c` | SECURITY INVOKER |
+| `pgp_pub_encrypt` | `bytea` | `c` | SECURITY INVOKER |
+| `pgp_pub_encrypt` | `bytea` | `c` | SECURITY INVOKER |
+| `pgp_pub_encrypt_bytea` | `bytea` | `c` | SECURITY INVOKER |
+| `pgp_pub_encrypt_bytea` | `bytea` | `c` | SECURITY INVOKER |
+| `pgp_sym_decrypt` | `text` | `c` | SECURITY INVOKER |
+| `pgp_sym_decrypt` | `text` | `c` | SECURITY INVOKER |
+| `pgp_sym_decrypt_bytea` | `bytea` | `c` | SECURITY INVOKER |
+| `pgp_sym_decrypt_bytea` | `bytea` | `c` | SECURITY INVOKER |
+| `pgp_sym_encrypt` | `bytea` | `c` | SECURITY INVOKER |
+| `pgp_sym_encrypt` | `bytea` | `c` | SECURITY INVOKER |
+| `pgp_sym_encrypt_bytea` | `bytea` | `c` | SECURITY INVOKER |
+| `pgp_sym_encrypt_bytea` | `bytea` | `c` | SECURITY INVOKER |
 | `protect_profile_role` | `trigger` | `plpgsql` | SECURITY DEFINER |
 | `set_machine_archive_actor` | `trigger` | `plpgsql` | SECURITY DEFINER |
 | `set_record_actor` | `trigger` | `plpgsql` | SECURITY DEFINER |
@@ -305,12 +351,12 @@
 
 | ตาราง | แถว |
 | --- | --- |
-| `profiles` | 13 |
-| `machines` | 4 |
-| `alarms` | 9 |
-| `maintenance_records` | 3 |
-| `audit_log` | 172 |
-| `change_requests` | 6 |
+| `profiles` | 12 |
+| `machines` | 6 |
+| `alarms` | 10 |
+| `maintenance_records` | 4 |
+| `audit_log` | 37 |
+| `change_requests` | 3 |
 
 ## วิธีดูสคีมาด้วยตนเอง
 
