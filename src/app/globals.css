@@ -1,0 +1,87 @@
+@import "tailwindcss";
+
+/*
+ * Dark mode is driven by a `dark` class on <html> so the user can toggle it, and
+ * the `light` variant is declared so `dark:` utilities know the light theme is
+ * the default. The choice is stored in localStorage and applied by an inline
+ * script in layout.tsx before first paint, which avoids a flash of light theme.
+ */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Design tokens. Declaring them with `@theme` (instead of the old hand-written
+ * `:root` custom properties) makes them available as real Tailwind utilities,
+ * e.g. `bg-canvas`, `text-ink`, `border-line`, `bg-brand-soft`.
+ */
+@theme {
+  /* Surfaces + text */
+  --color-ink: #172334;
+  --color-muted: #718096;
+  --color-faint: #9aa5b1;
+  --color-line: #e8edf2;
+  --color-canvas: #f6f8fb;
+  --color-surface: #ffffff;
+  --color-sunken: #f8fafc;
+  --color-steel: #9aa7b7;
+
+  /* Status text on a soft background. Kept separate from the status colour
+     itself because the soft backgrounds are very light and need a darker text. */
+  --color-on-brand-soft: #35659f;
+  --color-on-success-soft: #2d7a5a;
+  --color-on-warn-soft: #ba782c;
+  --color-on-danger-soft: #b23c3c;
+  --color-on-grape-soft: #6b53a8;
+
+  /* Semantic status palette */
+  --color-brand: #3478f6;
+  --color-brand-soft: #edf4ff;
+  --color-success: #35a879;
+  --color-success-soft: #eaf8f1;
+  --color-warn: #e59645;
+  --color-warn-soft: #fff4e7;
+  --color-danger: #e05b5b;
+  --color-danger-soft: #fff0f0;
+  --color-grape: #8b72cf;
+  --color-grape-soft: #f3efff;
+
+  --font-sans: "Trebuchet MS", "Segoe UI", sans-serif;
+}
+
+/*
+ * Dark theme overrides. Only the token values change, so every utility built on
+ * top of them (bg-canvas, bg-surface, text-ink, border-line and the soft status
+ * colours) flips automatically without touching a single component.
+ *
+ * This is the whole reason dark mode works: a component that says bg-surface
+ * re-themes itself, while a component that says bg-white stays white. Anything
+ * that hard-codes a colour here will not flip, so new styles should reach for a
+ * token instead.
+ */
+.dark {
+  --color-ink: #e7edf5;
+  --color-muted: #93a1b3;
+  --color-faint: #6b7c92;
+  --color-line: #24354a;
+  --color-canvas: #0a1626;
+  --color-surface: #111f33;
+  --color-sunken: #0d1a2b;
+  --color-steel: #64748b;
+
+  --color-on-brand-soft: #a8c8ff;
+  --color-on-success-soft: #86e0bb;
+  --color-on-warn-soft: #f0bd85;
+  --color-on-danger-soft: #f7a3a3;
+  --color-on-grape-soft: #c4b2f0;
+
+  --color-brand: #5b95ff;
+  --color-brand-soft: #16294a;
+  --color-success: #4ecb9a;
+  --color-success-soft: #10302a;
+  --color-warn: #eaa765;
+  --color-warn-soft: #33270f;
+  --color-danger: #f27b7b;
+  --color-danger-soft: #351a1e;
+  --color-grape: #a892e0;
+  --color-grape-soft: #241d3d;
+}
+
