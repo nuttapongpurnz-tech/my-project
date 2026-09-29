@@ -193,8 +193,8 @@ Web application สำหรับทีมงาน Automation ในโรง�
 ### 5.2 ติดตั้งและตั้งค่า
 
 ```bash
-git clone https://github.com/<your-account>/<your-repo>.git
-cd <your-repo>
+git clone https://github.com/nuttapongpurnz-tech/my-project.git
+cd my-project
 npm install
 cp .env.example .env.local
 ```
