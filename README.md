@@ -374,7 +374,7 @@ npm run test:db
 
 ระบบต้องการ Node.js เวอร์ชัน 22.6 ขึ้นไป โดย `package.json` ระบุ `engines.node` ไว้เพื่อให้ Vercel เลือก runtime ที่เข้ากันได้ (Next.js 16 ต้องการ 20.9 ขึ้นไป แต่ชุดทดสอบใช้ type stripping ของ Node.js ซึ่งมาตั้งแต่ 22.6)
 
-**Vercel URL:** https://web-application-psi-tawny.vercel.app
+**Vercel URL:** https://my-project-nine-sandy-36.vercel.app
 
 ระบบที่ deploy แล้วเปิดใช้งานได้จริง ตรวจสอบแล้วว่า `/login` ตอบ 200, หน้าอื่น redirect ไป `/login` เมื่อยังไม่ล็อกอิน, `/api/dashboard` ตอบ 401, Tailwind CSS ให้ครบ 446 กฎ และ client bundle เชื่อมต่อ Supabase project ถูกต้อง
 
@@ -462,7 +462,7 @@ npm run test:db
 
 ดูรายละเอียดเพิ่มเติมได้ที่ [`SUBMISSION_CHECKLIST.md`](./SUBMISSION_CHECKLIST.md)
 
-- [x] URL ของระบบที่ deploy บน Vercel — https://web-application-psi-tawny.vercel.app
+- [x] URL ของระบบที่ deploy บน Vercel — https://my-project-nine-sandy-36.vercel.app
 - [x] สคีมาฐานข้อมูลบน Supabase — [migration 11 ไฟล์](./supabase/migrations) และ [เอกสารสคีมา](./DATABASE_SCHEMA.md)
 - [x] เตรียมวิธีสร้างและทดสอบบัญชีทั้ง 3 บทบาท (Admin, Technician, Viewer) — ดู [หัวข้อ 5.2](#52-ติดตั้งและตั้งค่า) และคำอธิบายเหตุผลที่ไม่ฝากรหัสผ่านไว้ในโค้ดใน [หัวข้อ 9](#9-รายการสิ่งที่ต้องส่ง)
 - [x] อัปเดต README ด้วย URL จริงของ Vercel
@@ -471,7 +471,9 @@ npm run test:db
 
 ## 10. ภาพหน้าจอระบบ
 
-ทุกภาพถ่ายจากระบบที่ deploy จริงบน [Vercel](https://web-application-psi-tawny.vercel.app) ไม่ใช่จากเครื่องนักพัฒนา และตัวเลขในภาพมาจาก Supabase โปรเจกต์เดียวกับที่ใช้งานจริง
+ทุกภาพถ่ายจากระบบที่ deploy จริงบน [Vercel](https://my-project-nine-sandy-36.vercel.app) ไม่ใช่จากเครื่องนักพัฒนา และตัวเลขในภาพมาจาก Supabase โปรเจกต์เดียวกับที่ใช้งานจริง
+
+> **ภาพยังถ่ายจาก deployment รุ่นก่อน** ซึ่งชี้ไปยัง Supabase โปรเจกต์อีกโปรเจกต์หนึ่ง หน้าตาของระบบเหมือนเดิมทุกประการ แต่ตัวเลขในภาพมาจากฐานข้อมูลเก่า จึงควรถ่ายใหม่จาก URL ปัจจุบันเพื่อให้ตรงกับสิ่งที่ผู้ตรวจเห็น
 
 > **ไม่มีบัญชีสาธารณะในระบบนี้** เดิมมีบัญชี `demo.*@forgeops.dev` พร้อมรหัสผ่านที่เขียนไว้ใน README ซึ่งหมายความว่าใครก็ตามที่ได้สำเนาโค้ดชุดนี้สามารถเข้าสู่ระบบในฐานะ Admin ได้ บัญชีเหล่านั้นจึงถูกลบออกจากฐานข้อมูลแล้ว การฝากรหัสผ่านของบัญชีทดสอบไว้ในโค้ดที่เปิดเผยบน GitHub จึงเป็นช่องโหว่ที่แก้ไม่ได้ด้วยการเปลี่ยนรหัสผ่านทีหลัง เพราะผู้ที่ได้สำเนาโค้ดไปแล้วยังคงรู้รหัสเดิมอยู่
 >

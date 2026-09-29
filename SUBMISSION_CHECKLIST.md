@@ -5,7 +5,7 @@ down. The commands used to verify each one are noted so they can be repeated.
 
 ## Required links
 
-- [x] Vercel production URL added to `README.md` — `https://web-application-psi-tawny.vercel.app`
+- [x] Vercel production URL added to `README.md` — `https://my-project-nine-sandy-36.vercel.app`
 - [x] Supabase project/schema shared or exported as required — `DATABASE_SCHEMA.md`, exported from the live database
 - [x] Source repository on GitHub — `https://github.com/nuttapongpurnz-tech/my-project`,
       pushed to `main`. The clone URL in `README.md` §5.2 points at it, and CI runs
@@ -13,13 +13,20 @@ down. The commands used to verify each one are noted so they can be repeated.
 
 ## Outstanding
 
-- [ ] The Vercel deployment predates the current source. The running build
-      still logs React error #418 on `/login` for a visitor whose system
-      prefers a dark theme, and its machine-ID input is not constrained,
-      because the `pattern` attribute in that build is one Chrome rejects
-      under the `v` flag. Both are fixed in the source and confirmed fixed in
-      a production build; the acceptance tests above record the evidence.
-      Redeploy to pick the fixes up, and no code change is needed to close this.
+- [x] The two browser bugs are fixed in the running deployment. An earlier
+      build logged React error #418 on `/login` for a visitor whose system
+      prefers a dark theme, and left the machine-ID input unconstrained,
+      because the `pattern` attribute was one Chrome rejects under the `v`
+      flag. The current deployment is built from the fixed source: the theme
+      control reads the preference through `useSyncExternalStore`, and the
+      machine-ID field and its JavaScript share one pattern source that unit
+      tests assert compiles under `v`. The acceptance tests above record the
+      evidence.
+
+- [ ] The screenshots in `screenshots/` were captured from the previous
+      deployment, which pointed at a different Supabase project. The interface
+      is the same, but the figures in them come from the old database and
+      should be recaptured from the current URL to match what a reviewer sees.
 
 ## Database
 
